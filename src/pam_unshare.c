@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <sched.h>
 
@@ -35,20 +36,24 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
     _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: start", username);
 
     _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: about to unshare", username);
-    int unshare_err = unshare(CLONE_NEWPID);
+    int unshare_err = unshare(CLONE_NEWPID | CLONE_NEWNS);
     if (unshare_err) {
         _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: %s: error unsharing: %s", username, strerror(errno));
         return PAM_SESSION_ERR;
     }
     _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: successfully unshared", username);
 
-    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: about to remount /proc", username);
-    int mount_err = mount("", "/proc", "proc", MS_REMOUNT, NULL);
-    if (mount_err) {
-        _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: %s: error remounting /proc: %s", username, strerror(errno));
-        return PAM_SESSION_ERR;
+    if (access("/proc/cpuinfo", R_OK)) {
+        _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: no need to umount /proc", username);
+    } else {
+        _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: about to umount /proc", username);
+        int umount_err = umount("/proc");
+        if (umount_err) {
+            _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: %s: error umounting /proc: %s", username, strerror(errno));
+            return PAM_SESSION_ERR;
+        }
+        _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: successfully umounted /proc", username);
     }
-    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: successfully remounted /proc", username);
 
     _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: done", username);
     return PAM_SUCCESS;
