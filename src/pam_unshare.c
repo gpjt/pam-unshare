@@ -55,6 +55,20 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
         _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: successfully umounted /proc", username);
     }
 
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: about to kick off a subprocess", username);
+    int pid = fork();
+    if (pid == 0) {
+        _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: in subprocess, about to mount /proc", username);
+        if (mount("proc", "/proc", "proc", MS_NOSUID|MS_NOEXEC|MS_NODEV, NULL)) {
+            _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: %s: subprocess: error mounting /proc: %s", username, strerror(errno));
+            exit(1);
+        }
+        _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: in subprocess, successfully mounted /proc", username);
+        while (1) {}
+        _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: in subprocess, done waiting, exiting", username);
+        exit(0);
+    }
+
     _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: done", username);
     return PAM_SUCCESS;
 }
