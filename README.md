@@ -29,6 +29,12 @@ definitely make this module a do-nothing for root, and perhaps to allow you
 to specify a list of users who are likewise unaffected...
 
 
+How it works
+------------
+
+See [this blog post](http://www.gilesthomas.com/2016/04/pam-unshare-a-pam-module-that-switches-into-a-pid-namespace/).
+
+
 Acknowledgements
 ----------------
 
