@@ -9,6 +9,8 @@
 
 #include <sched.h>
 
+#include <sys/mount.h>
+
 #define  PAM_SM_SESSION
 #include <security/pam_modules.h>
 
@@ -32,12 +34,21 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
     }
     _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: start", username);
 
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: about to unshare", username);
     int unshare_err = unshare(CLONE_NEWPID);
     if (unshare_err) {
         _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: %s: error unsharing: %s", username, strerror(errno));
         return PAM_SESSION_ERR;
     }
     _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: successfully unshared", username);
+
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: about to remount /proc", username);
+    int mount_err = mount("", "/proc", "proc", MS_REMOUNT, NULL);
+    if (mount_err) {
+        _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: %s: error remounting /proc: %s", username, strerror(errno));
+        return PAM_SESSION_ERR;
+    }
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: successfully remounted /proc", username);
 
     _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: done", username);
     return PAM_SUCCESS;
