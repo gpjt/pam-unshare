@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <sched.h>
 
@@ -64,8 +65,17 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
             exit(1);
         }
         _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: in subprocess, successfully mounted /proc", username);
-        while (1) {}
+
+        _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: in subprocess, about to busy-wait for second child", username);
+        while (kill(2, 0) == -1 && errno == ESRCH) {
+        }
+        _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: in subprocess, second child has appeared, switching to slow-poll", username);
+
+        while (kill(2, 0) != -1 && errno != ESRCH) {
+            usleep(500000);
+        }
         _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: in subprocess, done waiting, exiting", username);
+
         exit(0);
     }
 
