@@ -30,14 +30,16 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
         _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: could not get username");
         return PAM_SESSION_ERR;
     }
-    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session %s", username);
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: start", username);
 
     int unshare_err = unshare(CLONE_NEWPID);
     if (unshare_err) {
-        _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: error unsharing: %s", strerror(errno));
+        _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: %s: error unsharing: %s", username, strerror(errno));
+        return PAM_SESSION_ERR;
     }
-    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session %s: successfully unshared", username);
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: successfully unshared", username);
 
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session: %s: done", username);
     return PAM_SUCCESS;
 }
 
@@ -48,6 +50,7 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t *pamh, int flags, int argc, con
         _pam_log(LOG_ERR, "pam_unshare pam_sm_close_session: could not get username");
         return PAM_SESSION_ERR;
     }
-    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_close_session for %s", username);
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_close_session: %s: start", username);
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_close_session: %s: done", username);
     return PAM_SUCCESS;
 }
