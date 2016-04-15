@@ -29,9 +29,15 @@ definitely make this module a do-nothing for root, and perhaps to allow you
 to specify a list of users who are likewise unaffected...
 
 
-
 Acknowledgements
 ----------------
 
 Inspiration drawn from Jameson Little's [simple-pam](https://github.com/beatgammit/simple-pam) and from Ed
 Schmollinger's [pam-chroot](https://sourceforge.net/projects/pam-chroot/).
+
+
+License
+-------
+
+MIT-licensed, see `LICENSE.txt`.
+
