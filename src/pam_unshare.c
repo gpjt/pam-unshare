@@ -1,8 +1,14 @@
+#define _GNU_SOURCE
+
 #include <syslog.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <errno.h>
+
+#include <sched.h>
+
 #define  PAM_SM_SESSION
 #include <security/pam_modules.h>
 
@@ -24,7 +30,14 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t *pamh, int flags, int argc, cons
         _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: could not get username");
         return PAM_SESSION_ERR;
     }
-    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session for %s", username);
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session %s", username);
+
+    int unshare_err = unshare(CLONE_NEWPID);
+    if (unshare_err) {
+        _pam_log(LOG_ERR, "pam_unshare pam_sm_open_session: error unsharing: %s", strerror(errno));
+    }
+    _pam_log(LOG_DEBUG, "pam_unshare pam_sm_open_session %s: successfully unshared", username);
+
     return PAM_SUCCESS;
 }
 
