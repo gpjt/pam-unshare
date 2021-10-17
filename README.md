@@ -28,6 +28,9 @@ NB. this is not something you'd want to leave in there for root; a TODO is
 definitely make this module a do-nothing for root, and perhaps to allow you
 to specify a list of users who are likewise unaffected...
 
+Configure the users to moved into the namespace in /etc/unshare-users.
+One username per line.
+
 
 How it works
 ------------
